@@ -3,6 +3,23 @@ name = "wgsl_analysis"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
 naga = { version = "25.0.1", features = ["arbitrary", "compact", "deserialize", "dot-out", "glsl-in", "glsl-out", "hlsl-out", "hlsl-out-if-target-windows", "msl-out", "msl-out-if-target-apple", "serialize", "spv-in", "spv-out", "wgsl-in", "wgsl-out"] }
-clap = { version = "4.0", features = ["derive"] }
+clap = { version = "4.0", features = ["derive"], optional = true }
+wasm-bindgen = { version = "0.2", optional = true }
+console_error_panic_hook = { version = "0.1", optional = true }
+js-sys = { version = "0.3", optional = true }
+web-sys = { version = "0.3", optional = true }
+base64 = { version = "0.21", optional = true }
+
+[features]
+default = ["cli"]
+cli = ["clap"]
+wasm = ["wasm-bindgen", "console_error_panic_hook", "js-sys", "web-sys", "base64"]
+
+[[bin]]
+name = "wgsl_analysis"
+required-features = ["cli"]
