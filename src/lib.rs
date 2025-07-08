@@ -8,6 +8,7 @@ use base64::prelude::*;
 use naga::back::{glsl, hlsl, msl, spv, wgsl};
 use naga::front::wgsl as front_wgsl;
 use naga::valid::{Capabilities, ValidationFlags, Validator};
+use rspirv::binary::Disassemble;
 
 #[cfg(feature = "wasm")]
 #[wasm_bindgen]
@@ -20,6 +21,7 @@ extern "C" {
 pub enum OutputFormat {
     Wgsl,
     Spirv,
+    SpirvAsm,
     Glsl,
     Hlsl,
     Metal,
@@ -30,6 +32,7 @@ impl From<&str> for OutputFormat {
         match s.to_lowercase().as_str() {
             "wgsl" => OutputFormat::Wgsl,
             "spirv" => OutputFormat::Spirv,
+            "spirv-asm" | "spv-asm" => OutputFormat::SpirvAsm,
             "glsl" => OutputFormat::Glsl,
             "hlsl" => OutputFormat::Hlsl,
             "metal" => OutputFormat::Metal,
@@ -38,10 +41,48 @@ impl From<&str> for OutputFormat {
     }
 }
 
-pub fn compile_shader_core(
+impl OutputFormat {
+    pub fn extension(&self) -> &'static str {
+        match self {
+            OutputFormat::Wgsl => "wgsl",
+            OutputFormat::Spirv => "spv",
+            OutputFormat::SpirvAsm => "spvasm",
+            OutputFormat::Glsl => "glsl",
+            OutputFormat::Hlsl => "hlsl",
+            OutputFormat::Metal => "metal",
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum OutputData {
+    Text(String),
+    Binary(Vec<u8>),
+}
+
+impl OutputData {
+    pub fn as_bytes(&self) -> Vec<u8> {
+        match self {
+            OutputData::Text(s) => s.as_bytes().to_vec(),
+            OutputData::Binary(b) => b.clone(),
+        }
+    }
+
+    pub fn as_string(&self) -> Result<String, String> {
+        match self {
+            OutputData::Text(s) => Ok(s.clone()),
+            OutputData::Binary(b) => {
+                String::from_utf8(b.clone())
+                    .map_err(|e| format!("Binary data cannot be converted to string: {}", e))
+            }
+        }
+    }
+}
+
+pub fn compile_shader(
     wgsl_source: &str,
     format: &OutputFormat,
-) -> Result<Vec<u8>, String> {
+) -> Result<OutputData, String> {
     // Parse WGSL
     let module = front_wgsl::parse_str(wgsl_source)
         .map_err(|e| format!("Failed to parse WGSL: {}", e))?;
@@ -55,42 +96,50 @@ pub fn compile_shader_core(
     match format {
         OutputFormat::Wgsl => {
             let output = generate_wgsl(&module, &module_info)?;
-            Ok(output.into_bytes())
+            Ok(OutputData::Text(output))
         }
-        OutputFormat::Spirv => generate_spirv(&module, &module_info),
+        OutputFormat::Spirv => {
+            let output = generate_spirv(&module, &module_info)?;
+            Ok(OutputData::Binary(output))
+        }
+        OutputFormat::SpirvAsm => {
+            let spirv_binary = generate_spirv(&module, &module_info)?;
+            let disassembled = disassemble_spirv(&spirv_binary)?;
+            Ok(OutputData::Text(disassembled))
+        }
         OutputFormat::Glsl => {
             let output = generate_glsl(&module, &module_info)?;
-            Ok(output.into_bytes())
+            Ok(OutputData::Text(output))
         }
         OutputFormat::Hlsl => {
             let output = generate_hlsl(&module, &module_info)?;
-            Ok(output.into_bytes())
+            Ok(OutputData::Text(output))
         }
         OutputFormat::Metal => {
             let output = generate_metal(&module, &module_info)?;
-            Ok(output.into_bytes())
+            Ok(OutputData::Text(output))
         }
     }
 }
 
 #[cfg(feature = "wasm")]
 #[wasm_bindgen(js_name = "compileShader")]
-pub fn compile_shader(wgsl_source: &str, format: &str) -> Result<String, JsValue> {
+pub fn compile_shader_wasm(wgsl_source: &str, format: &str) -> Result<String, JsValue> {
     console_error_panic_hook::set_once();
 
     let output_format = OutputFormat::from(format);
 
-    match compile_shader_core(wgsl_source, &output_format) {
-        Ok(bytes) => {
+    match compile_shader(wgsl_source, &output_format) {
+        Ok(output_data) => {
             match output_format {
                 OutputFormat::Spirv => {
-                    // For SPIR-V, return base64 encoded binary
-                    Ok(BASE64_STANDARD.encode(&bytes))
+                    // For SPIR-V binary, return base64 encoded
+                    Ok(BASE64_STANDARD.encode(&output_data.as_bytes()))
                 }
                 _ => {
-                    // For text formats, convert bytes to string
-                    String::from_utf8(bytes)
-                        .map_err(|e| JsValue::from_str(&format!("UTF-8 conversion error: {}", e)))
+                    // For text formats, return as string
+                    output_data.as_string()
+                        .map_err(|e| JsValue::from_str(&e))
                 }
             }
         }
@@ -104,6 +153,7 @@ pub fn get_supported_formats() -> js_sys::Array {
     let formats = js_sys::Array::new();
     formats.push(&JsValue::from_str("wgsl"));
     formats.push(&JsValue::from_str("spirv"));
+    formats.push(&JsValue::from_str("spirv-asm"));
     formats.push(&JsValue::from_str("glsl"));
     formats.push(&JsValue::from_str("hlsl"));
     formats.push(&JsValue::from_str("metal"));
@@ -149,6 +199,26 @@ fn generate_spirv(module: &naga::Module, module_info: &naga::valid::ModuleInfo) 
         .collect();
 
     Ok(bytes)
+}
+
+fn disassemble_spirv(spirv_bytes: &[u8]) -> Result<String, String> {
+    // Convert bytes back to u32 words
+    if spirv_bytes.len() % 4 != 0 {
+        return Err("SPIR-V binary length must be divisible by 4".to_string());
+    }
+
+    let words: Vec<u32> = spirv_bytes
+        .chunks_exact(4)
+        .map(|chunk| u32::from_le_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]))
+        .collect();
+
+    // Parse and disassemble
+    let mut loader = rspirv::dr::Loader::new();
+    rspirv::binary::parse_words(&words, &mut loader)
+        .map_err(|e| format!("Failed to parse SPIR-V: {}", e))?;
+
+    let module = loader.module();
+    Ok(module.disassemble())
 }
 
 fn generate_glsl(module: &naga::Module, module_info: &naga::valid::ModuleInfo) -> Result<String, String> {
@@ -223,9 +293,3 @@ fn generate_metal(module: &naga::Module, module_info: &naga::valid::ModuleInfo) 
 
     Ok(output)
 }
-
-
-
-// Re-export the main function for CLI use
-#[cfg(feature = "cli")]
-pub use compile_shader_core as compile_shader_cli;

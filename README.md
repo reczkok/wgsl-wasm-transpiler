@@ -9,7 +9,7 @@ A tool to compile WGSL shaders to various output formats, available as both a CL
 # Build and run
 cargo run --features cli -- shader.wgsl --format glsl
 
-# Available formats: wgsl, glsl, hlsl, metal, spirv
+# Available formats: wgsl, glsl, hlsl, metal, spirv, spirv-asm
 cargo run --features cli -- shader.wgsl --format hlsl --output shader.hlsl
 ```
 
@@ -54,7 +54,21 @@ cargo install wasm-pack
 - **GLSL** - OpenGL Shading Language  
 - **HLSL** - DirectX Shading Language
 - **Metal** - Apple's Metal Shading Language
-- **SPIR-V** - Binary format (base64 encoded)
+- **SPIR-V** - Binary format (base64 encoded in WASM)
+- **SPIR-V Assembly** - Human-readable SPIR-V disassembly
+
+### SPIR-V Formats
+
+The tool supports two SPIR-V output formats:
+
+1. **`spirv`** - Binary SPIR-V format
+   - CLI: Outputs raw binary `.spv` files
+   - WASM: Returns base64-encoded binary data
+
+2. **`spirv-asm`** - Human-readable SPIR-V assembly
+   - CLI: Outputs text `.spvasm` files  
+   - WASM: Returns disassembled text
+   - Useful for debugging and understanding SPIR-V structure
 
 ## Examples
 

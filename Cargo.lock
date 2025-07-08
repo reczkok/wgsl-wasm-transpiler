@@ -398,6 +398,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "rspirv"
+version = "0.12.0+sdk-1.3.268.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69cf3a93856b6e5946537278df0d3075596371b1950ccff012f02b0f7eafec8d"
+dependencies = [
+ "rustc-hash",
+ "spirv",
+]
+
+[[package]]
 name = "rustc-hash"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -607,6 +617,7 @@ dependencies = [
  "console_error_panic_hook",
  "js-sys",
  "naga",
+ "rspirv",
  "wasm-bindgen",
  "web-sys",
 ]

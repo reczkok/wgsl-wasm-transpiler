@@ -7,4 +7,5 @@
 *.metal
 *.spv
 *.wgsl
+*.spvasm
 .ropeproject/
