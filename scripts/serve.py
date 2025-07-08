@@ -31,7 +31,7 @@ def main():
     os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     print(f"Starting server on http://localhost:{port}")
-    print("Open: http://localhost:{port}/examples/web-example.html")
+    print(f"Open: http://localhost:{port}/examples/web-example.html")
     print("Press Ctrl+C to stop")
 
     try:
