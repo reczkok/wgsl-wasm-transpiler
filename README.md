@@ -11,6 +11,8 @@ wgsl-tool shader.wgsl
 # Compile to different formats
 wgsl-tool shader.wgsl --format spirv
 wgsl-tool shader.wgsl --format glsl
+wgsl-tool shader.wgsl --format hlsl
+wgsl-tool shader.wgsl --format metal
 
 # Specify output file
 wgsl-tool shader.wgsl --format glsl --output output.glsl
@@ -24,6 +26,8 @@ wgsl-tool shader.wgsl --verbose
 - **wgsl** - WebGPU Shading Language (default)
 - **spirv** - SPIR-V binary format
 - **glsl** - OpenGL Shading Language
+- **hlsl** - High Level Shading Language (DirectX)
+- **metal** - Metal Shading Language (Apple)
 
 ## Installation
 
@@ -42,6 +46,8 @@ The `examples/` directory contains sample shaders:
 ```bash
 # Try the examples
 make example-glsl    # Convert simple shader to GLSL
+make example-hlsl    # Convert simple shader to HLSL
+make example-metal   # Convert simple shader to Metal
 make example-spirv   # Convert to SPIR-V binary
 make example-multi   # Convert multi-stage shader
 ```
@@ -88,7 +94,7 @@ make test    # Run all tests
 
 ## Options
 
-- `-f, --format <FORMAT>` - Output format (wgsl, spirv, glsl)
+- `-f, --format <FORMAT>` - Output format (wgsl, spirv, glsl, hlsl, metal)
 - `-o, --output <FILE>` - Output file path
 - `-v, --verbose` - Verbose output
 - `-h, --help` - Show help

@@ -3,7 +3,7 @@ use std::fs;
 use std::path::Path;
 use std::process;
 
-use naga::back::{glsl, spv, wgsl};
+use naga::back::{glsl, hlsl, msl, spv, wgsl};
 use naga::front::wgsl as front_wgsl;
 use naga::valid::{Capabilities, ValidationFlags, Validator};
 
@@ -12,6 +12,8 @@ enum OutputFormat {
     Wgsl,
     Spirv,
     Glsl,
+    Hlsl,
+    Metal,
 }
 
 #[derive(Parser)]
@@ -75,6 +77,8 @@ fn get_output_path(input: &str, output: &Option<String>, format: &OutputFormat) 
         OutputFormat::Wgsl => "wgsl",
         OutputFormat::Spirv => "spv",
         OutputFormat::Glsl => "glsl",
+        OutputFormat::Hlsl => "hlsl",
+        OutputFormat::Metal => "metal",
     };
 
     format!("{}.{}", stem, extension)
@@ -129,7 +133,14 @@ fn compile_shader(
             let output = generate_glsl(&module, &module_info)?;
             fs::write(output_path, output).map_err(|e| format!("Failed to write output: {}", e))?;
         }
-
+        OutputFormat::Hlsl => {
+            let output = generate_hlsl(&module, &module_info)?;
+            fs::write(output_path, output).map_err(|e| format!("Failed to write output: {}", e))?;
+        }
+        OutputFormat::Metal => {
+            let output = generate_metal(&module, &module_info)?;
+            fs::write(output_path, output).map_err(|e| format!("Failed to write output: {}", e))?;
+        }
     }
 
     Ok(())
@@ -202,6 +213,45 @@ fn generate_glsl(module: &naga::Module, module_info: &naga::valid::ModuleInfo) -
 
     writer.write()
         .map_err(|e| format!("Failed to generate GLSL: {}", e))?;
+
+    Ok(output)
+}
+
+fn generate_hlsl(module: &naga::Module, module_info: &naga::valid::ModuleInfo) -> Result<String, String> {
+    let mut output = String::new();
+
+    let options = hlsl::Options::default();
+
+    let mut writer = hlsl::Writer::new(&mut output, &options);
+    writer.write(module, module_info, None)
+        .map_err(|e| format!("Failed to generate HLSL: {}", e))?;
+
+    Ok(output)
+}
+
+fn generate_metal(module: &naga::Module, module_info: &naga::valid::ModuleInfo) -> Result<String, String> {
+    let mut output = String::new();
+
+    let options = msl::Options {
+        lang_version: (2, 0),
+        per_entry_point_map: std::collections::BTreeMap::new(),
+        inline_samplers: Vec::new(),
+        spirv_cross_compatibility: false,
+        fake_missing_bindings: false,
+        bounds_check_policies: naga::proc::BoundsCheckPolicies::default(),
+        zero_initialize_workgroup_memory: true,
+        force_loop_bounding: true,
+    };
+
+    let pipeline_options = msl::PipelineOptions {
+        allow_and_force_point_size: false,
+        vertex_buffer_mappings: Vec::new(),
+        vertex_pulling_transform: false,
+    };
+
+    let mut writer = msl::Writer::new(&mut output);
+    writer.write(module, module_info, &options, &pipeline_options)
+        .map_err(|e| format!("Failed to generate Metal: {}", e))?;
 
     Ok(output)
 }

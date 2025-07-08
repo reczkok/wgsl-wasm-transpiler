@@ -26,7 +26,7 @@ install: release
 # Clean target
 clean:
 	cargo clean
-	rm -f *.wgsl *.glsl *.spv
+	rm -f *.wgsl *.glsl *.hlsl *.metal *.spv
 
 # Run examples
 example-wgsl: release
@@ -34,6 +34,12 @@ example-wgsl: release
 
 example-glsl: release
 	./$(RELEASE_DIR)/$(BINARY_NAME) examples/simple.wgsl --format glsl
+
+example-hlsl: release
+	./$(RELEASE_DIR)/$(BINARY_NAME) examples/simple.wgsl --format hlsl
+
+example-metal: release
+	./$(RELEASE_DIR)/$(BINARY_NAME) examples/simple.wgsl --format metal
 
 
 
@@ -55,6 +61,8 @@ help:
 	@echo ""
 	@echo "  example-wgsl   - Convert example to WGSL"
 	@echo "  example-glsl   - Convert example to GLSL"
+	@echo "  example-hlsl   - Convert example to HLSL"
+	@echo "  example-metal  - Convert example to Metal"
 	@echo "  example-spirv  - Convert example to SPIR-V"
 	@echo "  example-multi  - Convert multi-stage example to GLSL"
 	@echo ""

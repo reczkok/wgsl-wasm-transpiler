@@ -38,10 +38,14 @@ run_test() {
 # Run tests
 run_test "Simple WGSL" "examples/simple.wgsl" "wgsl"
 run_test "Simple GLSL" "examples/simple.wgsl" "glsl"
+run_test "Simple HLSL" "examples/simple.wgsl" "hlsl"
+run_test "Simple Metal" "examples/simple.wgsl" "metal"
 run_test "Simple SPIR-V" "examples/simple.wgsl" "spirv"
 
 run_test "Multi-stage WGSL" "examples/multi_stage.wgsl" "wgsl"
 run_test "Multi-stage GLSL" "examples/multi_stage.wgsl" "glsl"
+run_test "Multi-stage HLSL" "examples/multi_stage.wgsl" "hlsl"
+run_test "Multi-stage Metal" "examples/multi_stage.wgsl" "metal"
 run_test "Multi-stage SPIR-V" "examples/multi_stage.wgsl" "spirv"
 
 # Test error handling
