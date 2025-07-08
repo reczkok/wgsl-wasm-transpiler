@@ -1,7 +1,10 @@
 [package]
-name = "wgsl_analysis"
+name = "wgsl-tool"
 version = "0.1.0"
 edition = "2024"
+description = "WGSL shader compiler and analysis tool"
+repository = "https://github.com/your-username/wgsl-tool"
+license = "MIT"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -21,5 +24,5 @@ cli = ["clap"]
 wasm = ["wasm-bindgen", "console_error_panic_hook", "js-sys", "web-sys", "base64"]
 
 [[bin]]
-name = "wgsl_analysis"
+name = "wgsl-tool"
 required-features = ["cli"]

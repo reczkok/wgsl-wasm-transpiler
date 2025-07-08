@@ -1,8 +1,8 @@
 {
-  "name": "wgsl-analysis",
+  "name": "wgsl-tool",
   "version": "0.1.0",
   "description": "WGSL shader compiler and analysis tool",
-  "main": "pkg-nodejs/wgsl_analysis.js",
+  "main": "pkg-nodejs/wgsl_tool.js",
   "scripts": {
     "build": "./scripts/build-wasm.sh",
     "serve": "python3 scripts/serve.py",

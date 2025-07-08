@@ -74,7 +74,7 @@ pub fn compile_shader_core(
 }
 
 #[cfg(feature = "wasm")]
-#[wasm_bindgen]
+#[wasm_bindgen(js_name = "compileShader")]
 pub fn compile_shader(wgsl_source: &str, format: &str) -> Result<String, JsValue> {
     console_error_panic_hook::set_once();
 
@@ -99,7 +99,7 @@ pub fn compile_shader(wgsl_source: &str, format: &str) -> Result<String, JsValue
 }
 
 #[cfg(feature = "wasm")]
-#[wasm_bindgen]
+#[wasm_bindgen(js_name = "getSupportedFormats")]
 pub fn get_supported_formats() -> js_sys::Array {
     let formats = js_sys::Array::new();
     formats.push(&JsValue::from_str("wgsl"));

@@ -1,4 +1,4 @@
-# WGSL Analysis Tool
+# WGSL Tool
 
 A tool to compile WGSL shaders to various output formats, available as both a CLI tool and WebAssembly module.
 
@@ -17,19 +17,19 @@ cargo run --features cli -- shader.wgsl --format hlsl --output shader.hlsl
 
 **Node.js:**
 ```javascript
-const { compile_shader, init } = require('./pkg-nodejs/wgsl_analysis.js');
+const { compileShader, init } = require('./pkg-nodejs/wgsl_tool.js');
 init();
 
 const wgsl = '@fragment fn main() -> @location(0) vec4<f32> { return vec4<f32>(1.0, 0.0, 0.0, 1.0); }';
-const glsl = compile_shader(wgsl, 'glsl');
+const glsl = compileShader(wgsl, 'glsl');
 console.log(glsl);
 ```
 
 **Browser:**
 ```javascript
-import init, { compile_shader } from './pkg/wgsl_analysis.js';
+import init, { compileShader } from './pkg/wgsl_tool.js';
 await init();
-const result = compile_shader(wgslCode, 'glsl');
+const result = compileShader(wgslCode, 'glsl');
 ```
 
 ## Build
@@ -64,10 +64,10 @@ cargo install wasm-pack
 
 ## API
 
-### `compile_shader(wgsl_code: string, format: string) -> string`
+### `compileShader(wgsl_code: string, format: string) -> string`
 Compiles WGSL to the specified format.
 
-### `get_supported_formats() -> string[]`
+### `getSupportedFormats() -> string[]`
 Returns available output formats.
 
 ### `init()` (Node.js only)

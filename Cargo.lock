@@ -599,7 +599,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "wgsl_analysis"
+name = "wgsl-tool"
 version = "0.1.0"
 dependencies = [
  "base64",

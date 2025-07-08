@@ -1,5 +1,5 @@
-const { compile_shader, get_supported_formats, init } = require(
-  "../pkg-nodejs/wgsl_analysis.js",
+const { compileShader, getSupportedFormats, init } = require(
+  "../pkg-nodejs/wgsl_tool.js",
 );
 
 // Initialize the WebAssembly module
@@ -26,10 +26,10 @@ fn fs_main() -> @location(0) vec4<f32> {
 // Basic usage
 function basic_example() {
   console.log("=== Basic Example ===");
-  console.log("Supported formats:", get_supported_formats());
+  console.log("Supported formats:", getSupportedFormats());
 
   try {
-    const glsl = compile_shader(wgslCode, "glsl");
+    const glsl = compileShader(wgslCode, "glsl");
     console.log("GLSL Output:\n", glsl);
   } catch (error) {
     console.error("Error:", error.message);
@@ -42,7 +42,7 @@ function compile_from_args() {
 
   if (args.length < 2) {
     console.log("Usage: node nodejs-example.js <input-file> <output-format>");
-    console.log("Formats:", get_supported_formats().join(", "));
+    console.log("Formats:", getSupportedFormats().join(", "));
     return;
   }
 
@@ -51,7 +51,7 @@ function compile_from_args() {
 
   try {
     const wgslContent = fs.readFileSync(inputFile, "utf8");
-    const result = compile_shader(wgslContent, outputFormat);
+    const result = compileShader(wgslContent, outputFormat);
 
     const ext = outputFormat === "spirv" ? "spv" : outputFormat;
     const outputFile = inputFile.replace(/\.[^/.]+$/, `.${ext}`);
