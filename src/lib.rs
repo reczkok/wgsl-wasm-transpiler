@@ -16,11 +16,6 @@ extern "C" {
     fn log(s: &str);
 }
 
-#[cfg(feature = "wasm")]
-macro_rules! console_log {
-    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
-}
-
 #[derive(Debug, Clone)]
 pub enum OutputFormat {
     Wgsl,

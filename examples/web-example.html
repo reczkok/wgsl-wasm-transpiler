@@ -7,205 +7,99 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-        }
-        .input-section {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
         }
         textarea {
             width: 100%;
             height: 200px;
-            font-family: 'Courier New', monospace;
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 4px;
-            resize: vertical;
+            font-family: monospace;
+            margin: 10px 0;
         }
-        select {
-            width: 100%;
+        select, button {
             padding: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        button:disabled {
-            background-color: #6c757d;
-            cursor: not-allowed;
-        }
-        .output-section {
-            margin-top: 20px;
+            margin: 5px;
         }
         .error {
-            color: #dc3545;
-            background-color: #f8d7da;
+            color: red;
+            background: #ffe6e6;
             padding: 10px;
             border-radius: 4px;
-            margin-top: 10px;
         }
         .success {
-            color: #155724;
-            background-color: #d4edda;
+            color: green;
+            background: #e6ffe6;
             padding: 10px;
             border-radius: 4px;
-            margin-top: 10px;
-        }
-        .loading {
-            color: #007bff;
-            font-style: italic;
-        }
-        .output-format {
-            margin-top: 10px;
-            padding: 5px;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-            font-size: 12px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>WGSL Analysis Tool</h1>
-        <p>Compile WGSL shaders to various output formats using WebAssembly.</p>
+    <h1>WGSL Analysis Tool</h1>
 
-        <div class="input-section">
-            <label for="wgsl-input">WGSL Shader Code:</label>
-            <textarea id="wgsl-input" placeholder="Enter your WGSL shader code here...">
-@vertex
-fn vs_main(@builtin(vertex_index) vertex_index: u32) -> @builtin(position) vec4<f32> {
-    var pos = array<vec2<f32>, 3>(
-        vec2<f32>(-1.0, -1.0),
-        vec2<f32>( 1.0, -1.0),
-        vec2<f32>( 0.0,  1.0)
-    );
-    return vec4<f32>(pos[vertex_index], 0.0, 1.0);
-}
-
-@fragment
-fn fs_main() -> @location(0) vec4<f32> {
+    <div>
+        <label>WGSL Shader:</label>
+        <textarea id="wgsl-input" placeholder="Enter WGSL shader code...">@fragment
+fn main() -> @location(0) vec4<f32> {
     return vec4<f32>(1.0, 0.0, 0.0, 1.0);
-}
-            </textarea>
-        </div>
+}</textarea>
+    </div>
 
-        <div class="input-section">
-            <label for="output-format">Output Format:</label>
-            <select id="output-format">
-                <option value="wgsl">WGSL (WebGPU Shading Language)</option>
-                <option value="glsl">GLSL (OpenGL Shading Language)</option>
-                <option value="hlsl">HLSL (DirectX Shading Language)</option>
-                <option value="metal">Metal Shading Language</option>
-                <option value="spirv">SPIR-V (Binary - Base64 encoded)</option>
-            </select>
-        </div>
+    <div>
+        <label>Output Format:</label>
+        <select id="format">
+            <option value="glsl">GLSL</option>
+            <option value="hlsl">HLSL</option>
+            <option value="metal">Metal</option>
+            <option value="wgsl">WGSL</option>
+            <option value="spirv">SPIR-V</option>
+        </select>
+        <button onclick="compileShader()">Compile</button>
+    </div>
 
-        <button id="compile-btn" onclick="compileShader()">Compile Shader</button>
+    <div id="status"></div>
 
-        <div class="output-section">
-            <label for="output">Output:</label>
-            <div id="status"></div>
-            <div id="output-format-info" class="output-format"></div>
-            <textarea id="output" readonly placeholder="Compiled output will appear here..."></textarea>
-        </div>
+    <div>
+        <label>Output:</label>
+        <textarea id="output" readonly></textarea>
     </div>
 
     <script type="module">
-        import init, { compile_shader, get_supported_formats, init as wasm_init } from '../pkg/wgsl_analysis.js';
+        import init, { compile_shader, get_supported_formats } from '../pkg/wgsl_analysis.js';
 
-        let wasmReady = false;
+        let ready = false;
 
         async function initWasm() {
             try {
                 await init();
-                wasm_init();
-                wasmReady = true;
-                document.getElementById('status').innerHTML = '<div class="success">WebAssembly module loaded successfully!</div>';
-
-                // Populate supported formats
-                const formats = get_supported_formats();
-                console.log('Supported formats:', formats);
-
-                // Enable the compile button
-                document.getElementById('compile-btn').disabled = false;
+                ready = true;
+                document.getElementById('status').innerHTML = '<div class="success">Ready to compile!</div>';
             } catch (error) {
-                console.error('Failed to initialize WebAssembly:', error);
-                document.getElementById('status').innerHTML = '<div class="error">Failed to load WebAssembly module: ' + error.message + '</div>';
+                document.getElementById('status').innerHTML = `<div class="error">Failed to load: ${error.message}</div>`;
             }
         }
 
-        window.compileShader = async function() {
-            if (!wasmReady) {
-                document.getElementById('status').innerHTML = '<div class="error">WebAssembly module not ready yet.</div>';
+        window.compileShader = function() {
+            if (!ready) {
+                document.getElementById('status').innerHTML = '<div class="error">WebAssembly module not ready</div>';
                 return;
             }
 
             const wgslCode = document.getElementById('wgsl-input').value;
-            const outputFormat = document.getElementById('output-format').value;
-            const outputTextarea = document.getElementById('output');
-            const statusDiv = document.getElementById('status');
-            const formatInfo = document.getElementById('output-format-info');
-
-            if (!wgslCode.trim()) {
-                statusDiv.innerHTML = '<div class="error">Please enter WGSL shader code.</div>';
-                return;
-            }
-
-            statusDiv.innerHTML = '<div class="loading">Compiling shader...</div>';
-            outputTextarea.value = '';
-            formatInfo.textContent = '';
+            const format = document.getElementById('format').value;
+            const output = document.getElementById('output');
+            const status = document.getElementById('status');
 
             try {
-                const result = compile_shader(wgslCode, outputFormat);
-
-                outputTextarea.value = result;
-                statusDiv.innerHTML = '<div class="success">Shader compiled successfully!</div>';
-
-                // Update format info
-                if (outputFormat === 'spirv') {
-                    formatInfo.textContent = 'Format: SPIR-V binary (Base64 encoded)';
-                } else {
-                    formatInfo.textContent = `Format: ${outputFormat.toUpperCase()} source code`;
-                }
-
+                const result = compile_shader(wgslCode, format);
+                output.value = result;
+                status.innerHTML = '<div class="success">Compilation successful!</div>';
             } catch (error) {
-                console.error('Compilation error:', error);
-                statusDiv.innerHTML = '<div class="error">Compilation failed: ' + error.message + '</div>';
+                output.value = '';
+                status.innerHTML = `<div class="error">Compilation failed: ${error.message}</div>`;
             }
         };
-
-        // Initialize WebAssembly when the page loads
-        document.getElementById('compile-btn').disabled = true;
-        document.getElementById('status').innerHTML = '<div class="loading">Loading WebAssembly module...</div>';
 
         initWasm();
     </script>

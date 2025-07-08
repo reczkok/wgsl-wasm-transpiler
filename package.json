@@ -1,38 +1,14 @@
 {
   "name": "wgsl-analysis",
   "version": "0.1.0",
-  "description": "WebAssembly-based WGSL shader compiler and analysis tool",
+  "description": "WGSL shader compiler and analysis tool",
   "main": "pkg-nodejs/wgsl_analysis.js",
-  "types": "pkg-nodejs/wgsl_analysis.d.ts",
-  "files": [
-    "pkg-nodejs/"
-  ],
   "scripts": {
-    "build": "./build-wasm.sh",
-    "build:web": "wasm-pack build --target web --out-dir pkg --features wasm",
-    "build:bundler": "wasm-pack build --target bundler --out-dir pkg-bundler --features wasm",
-    "build:nodejs": "wasm-pack build --target nodejs --out-dir pkg-nodejs --features wasm",
-    "clean": "rm -rf pkg/ pkg-bundler/ pkg-nodejs/",
-    "test": "cargo test --features wasm"
+    "build": "./scripts/build-wasm.sh",
+    "serve": "python3 scripts/serve.py",
+    "test": "node examples/nodejs-example.js"
   },
-  "keywords": [
-    "wgsl",
-    "shader",
-    "webgpu",
-    "compiler",
-    "webassembly",
-    "graphics"
-  ],
+  "keywords": ["wgsl", "shader", "webgpu", "compiler", "webassembly"],
   "author": "Your Name",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yourusername/wgsl-analysis.git"
-  },
-  "engines": {
-    "node": ">=14.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^18.0.0"
-  }
+  "license": "MIT"
 }

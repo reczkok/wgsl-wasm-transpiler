@@ -1,1 +1,10 @@
-/target
+/target/
+/pkg/
+/pkg-bundler/
+/pkg-nodejs/
+*.glsl
+*.hlsl
+*.metal
+*.spv
+*.wgsl
+.ropeproject/
