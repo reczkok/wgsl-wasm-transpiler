@@ -1,0 +1,8 @@
+[package]
+name = "wgsl_analysis"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+naga = { version = "25.0.1", features = ["arbitrary", "compact", "deserialize", "dot-out", "glsl-in", "glsl-out", "hlsl-out", "hlsl-out-if-target-windows", "msl-out", "msl-out-if-target-apple", "serialize", "spv-in", "spv-out", "wgsl-in", "wgsl-out"] }
+clap = { version = "4.0", features = ["derive"] }
