@@ -1,9 +1,9 @@
 use std::collections::BTreeMap;
 
 #[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
-#[cfg(feature = "wasm")]
 use base64::prelude::*;
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
 
 use naga::back::{glsl, hlsl, msl, spv, wgsl};
 use naga::front::wgsl as front_wgsl;
@@ -54,10 +54,21 @@ impl OutputFormat {
     }
 }
 
-#[derive(Debug)]
 pub enum OutputData {
     Text(String),
     Binary(Vec<u8>),
+}
+
+impl std::fmt::Debug for OutputData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OutputData::Text(s) => f.debug_tuple("Text").field(s).finish(),
+            OutputData::Binary(b) => f
+                .debug_tuple("Binary")
+                .field(&format_args!("<{} bytes>", b.len()))
+                .finish(),
+        }
+    }
 }
 
 impl OutputData {
@@ -71,21 +82,16 @@ impl OutputData {
     pub fn as_string(&self) -> Result<String, String> {
         match self {
             OutputData::Text(s) => Ok(s.clone()),
-            OutputData::Binary(b) => {
-                String::from_utf8(b.clone())
-                    .map_err(|e| format!("Binary data cannot be converted to string: {}", e))
-            }
+            OutputData::Binary(b) => String::from_utf8(b.clone())
+                .map_err(|e| format!("Binary data cannot be converted to string: {}", e)),
         }
     }
 }
 
-pub fn compile_shader(
-    wgsl_source: &str,
-    format: &OutputFormat,
-) -> Result<OutputData, String> {
+pub fn compile_shader(wgsl_source: &str, format: &OutputFormat) -> Result<OutputData, String> {
     // Parse WGSL
-    let module = front_wgsl::parse_str(wgsl_source)
-        .map_err(|e| format!("Failed to parse WGSL: {}", e))?;
+    let module =
+        front_wgsl::parse_str(wgsl_source).map_err(|e| format!("Failed to parse WGSL: {}", e))?;
 
     // Validate
     let module_info = Validator::new(ValidationFlags::all(), Capabilities::all())
@@ -138,8 +144,7 @@ pub fn compile_shader_wasm(wgsl_source: &str, format: &str) -> Result<String, Js
                 }
                 _ => {
                     // For text formats, return as string
-                    output_data.as_string()
-                        .map_err(|e| JsValue::from_str(&e))
+                    output_data.as_string().map_err(|e| JsValue::from_str(&e))
                 }
             }
         }
@@ -166,15 +171,22 @@ pub fn init() {
     console_error_panic_hook::set_once();
 }
 
-fn generate_wgsl(module: &naga::Module, module_info: &naga::valid::ModuleInfo) -> Result<String, String> {
+fn generate_wgsl(
+    module: &naga::Module,
+    module_info: &naga::valid::ModuleInfo,
+) -> Result<String, String> {
     let mut output = String::new();
     let mut writer = wgsl::Writer::new(&mut output, wgsl::WriterFlags::empty());
-    writer.write(module, module_info)
+    writer
+        .write(module, module_info)
         .map_err(|e| format!("Failed to generate WGSL: {}", e))?;
     Ok(output)
 }
 
-fn generate_spirv(module: &naga::Module, module_info: &naga::valid::ModuleInfo) -> Result<Vec<u8>, String> {
+fn generate_spirv(
+    module: &naga::Module,
+    module_info: &naga::valid::ModuleInfo,
+) -> Result<Vec<u8>, String> {
     let options = spv::Options {
         lang_version: (1, 0),
         flags: spv::WriterFlags::empty(),
@@ -186,15 +198,17 @@ fn generate_spirv(module: &naga::Module, module_info: &naga::valid::ModuleInfo) 
         force_loop_bounding: true,
     };
 
-    let mut writer = spv::Writer::new(&options)
-        .map_err(|e| format!("Failed to create SPIR-V writer: {}", e))?;
+    let mut writer =
+        spv::Writer::new(&options).map_err(|e| format!("Failed to create SPIR-V writer: {}", e))?;
 
     let mut spirv_binary = Vec::new();
-    writer.write(module, module_info, None, &None, &mut spirv_binary)
+    writer
+        .write(module, module_info, None, &None, &mut spirv_binary)
         .map_err(|e| format!("Failed to generate SPIR-V: {}", e))?;
 
     // Convert u32 words to bytes
-    let bytes = spirv_binary.iter()
+    let bytes = spirv_binary
+        .iter()
         .flat_map(|&word| word.to_le_bytes().to_vec())
         .collect();
 
@@ -221,7 +235,10 @@ fn disassemble_spirv(spirv_bytes: &[u8]) -> Result<String, String> {
     Ok(module.disassemble())
 }
 
-fn generate_glsl(module: &naga::Module, module_info: &naga::valid::ModuleInfo) -> Result<String, String> {
+fn generate_glsl(
+    module: &naga::Module,
+    module_info: &naga::valid::ModuleInfo,
+) -> Result<String, String> {
     let mut output = String::new();
 
     let options = glsl::Options {
@@ -232,7 +249,10 @@ fn generate_glsl(module: &naga::Module, module_info: &naga::valid::ModuleInfo) -
     };
 
     // Find the first entry point to use
-    let entry_point = module.entry_points.iter().next()
+    let entry_point = module
+        .entry_points
+        .iter()
+        .next()
         .ok_or("No entry points found in module")?;
 
     let pipeline_options = glsl::PipelineOptions {
@@ -248,26 +268,35 @@ fn generate_glsl(module: &naga::Module, module_info: &naga::valid::ModuleInfo) -
         &options,
         &pipeline_options,
         naga::proc::BoundsCheckPolicies::default(),
-    ).map_err(|e| format!("Failed to create GLSL writer: {}", e))?;
+    )
+    .map_err(|e| format!("Failed to create GLSL writer: {}", e))?;
 
-    writer.write()
+    writer
+        .write()
         .map_err(|e| format!("Failed to generate GLSL: {}", e))?;
 
     Ok(output)
 }
 
-fn generate_hlsl(module: &naga::Module, module_info: &naga::valid::ModuleInfo) -> Result<String, String> {
+fn generate_hlsl(
+    module: &naga::Module,
+    module_info: &naga::valid::ModuleInfo,
+) -> Result<String, String> {
     let mut output = String::new();
     let options = hlsl::Options::default();
 
     let mut writer = hlsl::Writer::new(&mut output, &options);
-    writer.write(module, module_info, None)
+    writer
+        .write(module, module_info, None)
         .map_err(|e| format!("Failed to generate HLSL: {}", e))?;
 
     Ok(output)
 }
 
-fn generate_metal(module: &naga::Module, module_info: &naga::valid::ModuleInfo) -> Result<String, String> {
+fn generate_metal(
+    module: &naga::Module,
+    module_info: &naga::valid::ModuleInfo,
+) -> Result<String, String> {
     let mut output = String::new();
 
     let options = msl::Options {
@@ -288,7 +317,8 @@ fn generate_metal(module: &naga::Module, module_info: &naga::valid::ModuleInfo) 
     };
 
     let mut writer = msl::Writer::new(&mut output);
-    writer.write(module, module_info, &options, &pipeline_options)
+    writer
+        .write(module, module_info, &options, &pipeline_options)
         .map_err(|e| format!("Failed to generate Metal: {}", e))?;
 
     Ok(output)
