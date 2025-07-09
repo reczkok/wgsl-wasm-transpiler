@@ -1,17 +1,13 @@
 #!/bin/bash
 
-# Simple test script for WGSL Analysis Tool
-
 set -e
 
 echo "Testing WGSL Analysis Tool..."
 echo "============================="
 
-# Test CLI
 echo "Testing CLI..."
 cargo build --features cli --quiet
 
-# Test basic compilation
 echo "Testing basic compilation..."
 cargo run --features cli --quiet -- examples/triangle.wgsl --format glsl > /dev/null
 echo "✓ CLI works"
