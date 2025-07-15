@@ -4,7 +4,7 @@
   "description": "WGSL shader compiler and analysis tool",
   "main": "pkg-nodejs/wgsl_tool.js",
   "scripts": {
-    "build": "./scripts/build-wasm.sh",
+    "build": "cargo build && ./scripts/build-wasm.sh",
     "serve": "python3 scripts/serve.py",
     "test": "node examples/nodejs-example.js"
   },

@@ -93,8 +93,7 @@ pub fn compile_shader(wgsl_source: &str, format: &OutputFormat) -> Result<Output
     let module =
         front_wgsl::parse_str(wgsl_source).map_err(|e| format!("Failed to parse WGSL: {}", e))?;
 
-    // Validate
-    let module_info = Validator::new(ValidationFlags::all(), Capabilities::all())
+    let module_info = Validator::new(ValidationFlags::empty(), Capabilities::all())
         .validate(&module)
         .map_err(|e| format!("Validation failed: {}", e))?;
 
@@ -300,7 +299,7 @@ fn generate_metal(
     let mut output = String::new();
 
     let options = msl::Options {
-        lang_version: (2, 0),
+        lang_version: (3, 2),
         per_entry_point_map: BTreeMap::new(),
         inline_samplers: Vec::new(),
         spirv_cross_compatibility: false,
