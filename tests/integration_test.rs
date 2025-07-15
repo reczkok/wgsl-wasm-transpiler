@@ -1,4 +1,4 @@
-use wgsl_tool::{compile_shader, OutputFormat, OutputData};
+use wgsl_wasm_transpiler::{compile_shader, OutputFormat, OutputData};
 
 const SIMPLE_SHADER: &str = r#"
 @vertex

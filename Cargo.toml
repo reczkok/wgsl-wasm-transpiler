@@ -1,9 +1,9 @@
 [package]
-name = "wgsl-tool"
+name = "wgsl-wasm-transpiler"
 version = "0.1.0"
 edition = "2024"
 description = "WGSL shader compiler and analysis tool"
-repository = "https://github.com/your-username/wgsl-tool"
+repository = "https://github.com/reczkok/wgsl-wasm-transpiler"
 license = "MIT"
 
 [lib]
@@ -25,5 +25,5 @@ cli = ["clap"]
 wasm = ["wasm-bindgen", "console_error_panic_hook", "js-sys", "web-sys", "base64"]
 
 [[bin]]
-name = "wgsl-tool"
+name = "wgsl-wasm-transpiler"
 required-features = ["cli"]

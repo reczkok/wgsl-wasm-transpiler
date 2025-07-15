@@ -3,7 +3,7 @@ use std::fs;
 use std::path::Path;
 use std::process;
 
-use wgsl_tool::{compile_shader, OutputFormat, OutputData};
+use wgsl_wasm_transpiler::{OutputData, OutputFormat, compile_shader};
 
 #[derive(Debug, Clone, ValueEnum)]
 enum CliOutputFormat {
@@ -101,8 +101,8 @@ fn compile_shader_file(
     if verbose {
         println!("Reading WGSL file...");
     }
-    let wgsl_source = fs::read_to_string(input_path)
-        .map_err(|e| format!("Failed to read input file: {}", e))?;
+    let wgsl_source =
+        fs::read_to_string(input_path).map_err(|e| format!("Failed to read input file: {}", e))?;
 
     // Compile using shared logic
     if verbose {

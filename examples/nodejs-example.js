@@ -1,5 +1,5 @@
 const { compileShader, getSupportedFormats, init } = require(
-  "../pkg-nodejs/wgsl_tool.js",
+  "../pkg-nodejs/wgsl_wasm_transpiler.js",
 );
 
 // Initialize the WebAssembly module

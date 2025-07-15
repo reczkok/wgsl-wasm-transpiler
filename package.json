@@ -1,14 +1,14 @@
 {
-  "name": "wgsl-tool",
+  "name": "wgsl-wasm-transpiler",
   "version": "0.1.0",
   "description": "WGSL shader compiler and analysis tool",
-  "main": "pkg-nodejs/wgsl_tool.js",
+  "main": "pkg-nodejs/wgsl_wasm_transpiler.js",
   "scripts": {
     "build": "cargo build && ./scripts/build-wasm.sh",
     "serve": "python3 scripts/serve.py",
     "test": "node examples/nodejs-example.js"
   },
   "keywords": ["wgsl", "shader", "webgpu", "compiler", "webassembly"],
-  "author": "Your Name",
+  "author": "reczkok",
   "license": "MIT"
 }

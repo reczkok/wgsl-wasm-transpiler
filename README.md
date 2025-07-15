@@ -1,4 +1,4 @@
-# WGSL Tool
+# WGSL transpiler
 
 This is a simple tool to convert WGSL shaders into other formats. You can use it from the command line or in JavaScript (Node.js or browser).
 
@@ -20,7 +20,7 @@ Formats you can use: wgsl, glsl, hlsl, metal, spirv, spirv-asm
 
 **Node.js:**
 ```javascript
-const { compileShader, init } = require('./pkg-nodejs/wgsl_tool.js');
+const { compileShader, init } = require('./pkg-nodejs/wgsl_wasm_transpiler.js');
 init();
 
 const wgsl = '@fragment fn main() -> @location(0) vec4<f32> { return vec4<f32>(1.0, 0.0, 0.0, 1.0); }';
@@ -30,7 +30,7 @@ console.log(glsl);
 
 **Browser:**
 ```javascript
-import init, { compileShader } from './pkg/wgsl_tool.js';
+import init, { compileShader } from './pkg/wgsl_wasm_transpiler.js';
 await init();
 const result = compileShader(wgslCode, 'glsl');
 ```
